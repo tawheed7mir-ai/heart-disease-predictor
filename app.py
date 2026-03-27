@@ -2,67 +2,73 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
+import plotly.graph_objects as go
 
-# ------------------ CONFIG ------------------
+# ---------------- CONFIG ----------------
 st.set_page_config(
     page_title="Heart Disease AI",
     page_icon="❤️",
     layout="wide"
 )
 
-# ------------------ LOAD ------------------
+# ---------------- CUSTOM CSS ----------------
+st.markdown("""
+<style>
+body {
+    background-color: #0e1117;
+}
+.block-container {
+    padding-top: 2rem;
+}
+h1, h2, h3 {
+    text-align: center;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ---------------- LOAD ----------------
 model = joblib.load("knn_heart.pkl")
 scaler = joblib.load("scaler.pkl")
 columns = joblib.load("columns.pkl")
 
-# ------------------ SIDEBAR ------------------
-st.sidebar.title("⚙️ About")
-st.sidebar.info(
-    "This AI model predicts the likelihood of heart disease based on patient data.\n\n"
-    "Built using Machine Learning (KNN)."
-)
+# ---------------- HEADER ----------------
+st.markdown("<h1>❤️ Heart Disease AI</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center;'>Next-gen health risk prediction system</p>", unsafe_allow_html=True)
+
+st.divider()
+
+# ---------------- SIDEBAR ----------------
+st.sidebar.title("⚙️ Controls")
+show_chart = st.sidebar.toggle("Show Feature Chart", True)
 
 st.sidebar.markdown("### 👨‍💻 Developer")
 st.sidebar.write("Tawheed Mir")
 
-# ------------------ HEADER ------------------
-st.markdown(
-    """
-    <h1 style='text-align: center;'>❤️ Heart Disease Prediction AI</h1>
-    <p style='text-align: center; font-size:18px;'>
-    Smart health risk detection powered by Machine Learning
-    </p>
-    """,
-    unsafe_allow_html=True
-)
-
-st.divider()
-
-# ------------------ INPUT SECTION ------------------
-st.markdown("## 📋 Enter Patient Details")
+# ---------------- INPUT ----------------
+st.markdown("## 📋 Patient Input")
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
     age = st.slider("Age", 20, 100, 40)
     sex = st.selectbox("Sex", ["Male", "Female"])
-    chest_pain = st.selectbox("Chest Pain Type", ["ATA", "NAP", "ASY", "TA"])
+    chest_pain = st.selectbox("Chest Pain", ["ATA", "NAP", "ASY", "TA"])
 
 with col2:
-    resting_bp = st.number_input("Resting Blood Pressure", value=120)
-    cholesterol = st.number_input("Cholesterol", value=200)
-    fasting_bs = st.selectbox("Fasting Blood Sugar > 120", [0, 1])
+    resting_bp = st.number_input("Resting BP", 80, 200, 120)
+    cholesterol = st.number_input("Cholesterol", 100, 400, 200)
+    fasting_bs = st.selectbox("Fasting BS >120", [0, 1])
 
 with col3:
-    max_hr = st.number_input("Max Heart Rate", value=150)
+    max_hr = st.number_input("Max HR", 60, 220, 150)
     exercise_angina = st.selectbox("Exercise Angina", ["Yes", "No"])
-    oldpeak = st.number_input("Oldpeak", value=1.0)
+    oldpeak = st.slider("Oldpeak", 0.0, 6.0, 1.0)
     st_slope = st.selectbox("ST Slope", ["Up", "Flat", "Down"])
 
 st.divider()
 
-# ------------------ PREDICT BUTTON ------------------
-if st.button("🚀 Run Prediction"):
+# ---------------- PREDICT ----------------
+if st.button("🚀 Predict"):
 
     input_dict = {
         "Age": age,
@@ -95,37 +101,62 @@ if st.button("🚀 Run Prediction"):
 
     st.divider()
 
-    # ------------------ RESULT ------------------
-    st.markdown("## 📊 Prediction Dashboard")
+    # ---------------- RESULT ----------------
+    st.markdown("## 📊 AI Dashboard")
 
-    colA, colB, colC = st.columns(3)
+    colA, colB = st.columns([2,1])
 
+    # -------- GAUGE --------
     with colA:
-        st.metric("Risk Score", f"{prob:.2f}")
+        fig = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=prob * 100,
+            title={'text': "Heart Risk %"},
+            gauge={
+                'axis': {'range': [0, 100]},
+                'bar': {'color': "red"},
+                'steps': [
+                    {'range': [0, 40], 'color': "green"},
+                    {'range': [40, 70], 'color': "yellow"},
+                    {'range': [70, 100], 'color': "red"}
+                ]
+            }
+        ))
+        st.plotly_chart(fig, use_container_width=True)
 
+    # -------- RESULT TEXT --------
     with colB:
-        st.metric("Prediction", "High Risk" if prediction == 1 else "Low Risk")
+        if prediction == 1:
+            st.error("⚠️ HIGH RISK")
+        else:
+            st.success("✅ LOW RISK")
 
-    with colC:
+        st.metric("Probability", f"{prob:.2f}")
         st.metric("Confidence", f"{prob*100:.1f}%")
 
-    # Progress bar
-    st.progress(int(prob * 100))
+    # -------- FEATURE CHART --------
+    if show_chart:
+        st.markdown("## 🧠 Feature Contribution (approx)")
 
-    # Color result
-    if prediction == 1:
-        st.error("⚠️ High Risk of Heart Disease")
-    else:
-        st.success("✅ Low Risk of Heart Disease")
+        values = input_df.iloc[0].values
+        feature_names = input_df.columns
 
-# ------------------ FOOTER ------------------
+        fig2 = go.Figure(
+            go.Bar(
+                x=feature_names,
+                y=values
+            )
+        )
+        fig2.update_layout(
+            xaxis_title="Features",
+            yaxis_title="Values"
+        )
+
+        st.plotly_chart(fig2, use_container_width=True)
+
+# ---------------- FOOTER ----------------
 st.divider()
-
 st.markdown(
-    """
-    <center>
-    ⚠️ <b>Disclaimer:</b> This tool is for educational purposes only and should not be used as medical advice.
-    </center>
-    """,
+    "<center>⚠️ Not medical advice. For educational use only.</center>",
     unsafe_allow_html=True
 )

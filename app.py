@@ -42,7 +42,7 @@ st.sidebar.title("⚙️ Controls")
 show_chart = st.sidebar.toggle("Show Feature Chart", True)
 
 st.sidebar.markdown("### 👨‍💻 Developer")
-st.sidebar.write("Tawheed Mir")
+st.sidebar.write("Towheed Qayoom")
 
 # ---------------- INPUT ----------------
 st.markdown("## 📋 Patient Input")

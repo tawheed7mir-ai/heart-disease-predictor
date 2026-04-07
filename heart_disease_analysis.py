@@ -9,11 +9,11 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 import joblib
 
-# 1️⃣ Load dataset
+# 1️ Load dataset
 df = pd.read_csv(r"C:\Users\DELL\Downloads\heart.csv")
 print(df.head())
 
-# 2️⃣ Encode categorical features
+# 2️ Encode categorical features
 df["Sex"] = df["Sex"].map({"M":1, "F":0})
 df["ExerciseAngina"] = df["ExerciseAngina"].map({"Y":1, "N":0})
 df_encoded = df.rename(columns={"Sex":"is_male","ExerciseAngina":"ExerciseAngina_Y"})
@@ -23,23 +23,22 @@ df_encoded = pd.get_dummies(df_encoded, columns=["ChestPainType","RestingECG","S
 
 df_encoded = df_encoded.astype(int)
 
-# 3️⃣ Features and target
+# 3️ Features and target
 X = df_encoded.drop("HeartDisease", axis=1)
 y = df_encoded["HeartDisease"]
 <<<<<<< HEAD
 X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.20,random_state=42)
-=======
->>>>>>> fa48bd1 (Updated app.py with tuned KNN and cholesterol warning)
 
-# 4️⃣ Train/Test Split
+
+# 4️ Train/Test Split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# 5️⃣ Scale features
+# 5️ Scale features
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
-# 6️⃣ Define models with hyperparameter grids
+# 6️ Define models with hyperparameter grids
 models = {
     "KNN": {
         "model": KNeighborsClassifier(),
@@ -63,7 +62,7 @@ models = {
     }
 }
 
-# 7️⃣ Train models with hyperparameter tuning
+# 7️ Train models with hyperparameter tuning
 best_models = {}
 results = []
 
@@ -98,7 +97,7 @@ for name, m in models.items():
     
     best_models[name] = best_model
 
-# 8️⃣ Print all results
+# 8️ Print all results
 for r in results:
     print(f"\nModel: {r['Model']}")
     print(f"Accuracy: {r['Accuracy']:.4f}")
@@ -106,7 +105,7 @@ for r in results:
     print(f"Precision: {r['Precision']:.4f}")
     print(f"Recall: {r['Recall']:.4f}")
 
-# 9️⃣ Save the best KNN model, scaler, and columns for Streamlit
+# 9️ Save the best KNN model, scaler, and columns for Streamlit
 joblib.dump(best_models["KNN"], "knn_heart.pkl")
 joblib.dump(scaler, "scaler.pkl")
 joblib.dump(X.columns.to_list(), "columns.pkl")

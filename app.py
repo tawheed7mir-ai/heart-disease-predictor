@@ -58,6 +58,8 @@ with col2:
     resting_bp = st.number_input("Resting BP", 80, 200, 120)
     cholesterol = st.number_input("Cholesterol", 100, 400, 200)
     fasting_bs = st.selectbox("Fasting BS >120", [0, 1])
+    if cholesterol >= 240:
+        st.warning("⚠️ Cholesterol is high! Consider consulting a doctor.")
 
 with col3:
     max_hr = st.number_input("Max HR", 60, 220, 150)
